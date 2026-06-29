@@ -1,0 +1,30 @@
+diff --git a/node_modules/edge-tts-universal/dist/index.cjs b/node_modules/edge-tts-universal/dist/index.cjs
+index 2b01b22..13ee296 100644
+--- a/node_modules/edge-tts-universal/dist/index.cjs
++++ b/node_modules/edge-tts-universal/dist/index.cjs
+@@ -152,7 +152,9 @@ function* splitTextByByteLength(text, byteLength) {
+ }
+ function mkssml(tc, escapedText) {
+   const text = Buffer.isBuffer(escapedText) ? escapedText.toString("utf-8") : escapedText;
+-  return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${tc.voice}'><prosody pitch='${tc.pitch}' rate='${tc.rate}' volume='${tc.volume}'>${text}</prosody></voice></speak>`;
++  const match = /\(([^,]+),/.exec(tc.voice);
++  const lang = match ? match[1] : "en-US";
++  return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'><voice name='${tc.voice}'><prosody pitch='${tc.pitch}' rate='${tc.rate}' volume='${tc.volume}'>${text}</prosody></voice></speak>`;
+ }
+ function dateToString() {
+   return (/* @__PURE__ */ new Date()).toUTCString().replace("GMT", "GMT+0000 (Coordinated Universal Time)");
+diff --git a/node_modules/edge-tts-universal/dist/index.js b/node_modules/edge-tts-universal/dist/index.js
+index 57650af..50f19f6 100644
+--- a/node_modules/edge-tts-universal/dist/index.js
++++ b/node_modules/edge-tts-universal/dist/index.js
+@@ -144,7 +144,9 @@ function* splitTextByByteLength(text, byteLength) {
+ }
+ function mkssml(tc, escapedText) {
+   const text = Buffer.isBuffer(escapedText) ? escapedText.toString("utf-8") : escapedText;
+-  return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${tc.voice}'><prosody pitch='${tc.pitch}' rate='${tc.rate}' volume='${tc.volume}'>${text}</prosody></voice></speak>`;
++  const match = /\(([^,]+),/.exec(tc.voice);
++  const lang = match ? match[1] : "en-US";
++  return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${lang}'><voice name='${tc.voice}'><prosody pitch='${tc.pitch}' rate='${tc.rate}' volume='${tc.volume}'>${text}</prosody></voice></speak>`;
+ }
+ function dateToString() {
+   return (/* @__PURE__ */ new Date()).toUTCString().replace("GMT", "GMT+0000 (Coordinated Universal Time)");
