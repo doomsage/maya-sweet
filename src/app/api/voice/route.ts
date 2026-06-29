@@ -9,7 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Text parameter is required' }, { status: 400 });
     }
 
-    const ttsVoice = voice || 'hi-IN-SwararaNeural'; // Default to Swarara (Indian female voice)
+    const ttsVoice = voice || 'hi-IN-SwaraNeural'; // Default to Swara (Indian female voice)
 
     // Microsoft Edge TTS Read Aloud service call
     const tts = new EdgeTTS(text, ttsVoice);

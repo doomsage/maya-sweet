@@ -18,7 +18,7 @@ export default function Home() {
   // Settings state (hydrated from localStorage on mount)
   const [settings, setSettings] = useState<AppSettings>({
     geminiApiKey: '',
-    voiceName: 'hi-IN-SwararaNeural',
+    voiceName: 'hi-IN-SwaraNeural',
     voiceSpeed: 1.0,
     autoSpeak: true,
     nickname: 'Babe',
@@ -500,7 +500,7 @@ export default function Home() {
               onChange={(e) => updateSettings({ voiceName: e.target.value })}
             >
               <optgroup label="Hindi (Natural Accent)">
-                <option value="hi-IN-SwararaNeural">Maya Hindi (Swarara - Sweet Female) ★</option>
+                <option value="hi-IN-SwaraNeural">Maya Hindi (Swara - Sweet Female) ★</option>
                 <option value="hi-IN-MadhurNeural">Hindi Male (Madhur - Male)</option>
               </optgroup>
               <optgroup label="Indian English">
