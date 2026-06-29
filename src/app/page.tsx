@@ -45,6 +45,7 @@ export default function Home() {
     stopSpeaking,
     toggleMute,
     initAudio,
+    unlockAudio,
   } = useSpeech(settings.voiceName);
 
   // Keep refs in sync for callbacks
@@ -249,6 +250,7 @@ export default function Home() {
   // Text Chat Submit Handler
   const handleTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    unlockAudio();
     if (!inputText.trim() || isProcessing) return;
 
     const userText = inputText.trim();
@@ -351,7 +353,7 @@ export default function Home() {
       return;
     }
 
-    initAudio();
+    unlockAudio();
     stopSpeaking();
     setCallState('ringing');
     hasStartedCallRef.current = false;
@@ -426,7 +428,7 @@ export default function Home() {
   };
 
   const testVoice = () => {
-    initAudio();
+    unlockAudio();
     speak('हे शोना! मैंने ये आवाज़ आपके लिए चुनी है। क्या ये मेरी आवाज़ जैसी लग रही है?');
   };
 
@@ -647,7 +649,7 @@ export default function Home() {
           <div className="orb-container">
             <div
               className={`orb ${isListening ? 'listening' : ''} ${isSpeaking ? 'speaking' : ''}`}
-              onClick={initAudio}
+              onClick={unlockAudio}
             ></div>
           </div>
 

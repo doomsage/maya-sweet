@@ -34,9 +34,14 @@ export function useSpeech(voiceName: string) {
 
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition & Persistent Audio Element
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Create persistent audio element
+      const audio = new Audio();
+      audio.crossOrigin = 'anonymous';
+      audioRef.current = audio;
+
       const SpeechRecognitionClass =
         (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       
@@ -70,22 +75,54 @@ export function useSpeech(voiceName: string) {
     
     // Resume audio context if suspended (common browser security policy)
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
+      audioContextRef.current.resume().catch(() => {});
     }
   }, []);
+
+  // Unlock Audio function: MUST run directly in a user click event to unlock mobile browser playback
+  const unlockAudio = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    
+    // 1. Play a 0.1-second silent WAV to unlock the persistent audio element
+    const audio = audioRef.current;
+    if (audio) {
+      audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAAA==';
+      audio.play().then(() => {
+        audio.pause();
+        console.log('Audio element successfully unlocked.');
+      }).catch((err) => {
+        console.warn('Audio element unlock warning:', err);
+      });
+    }
+
+    // 2. Initialize and resume AudioContext
+    initAudio();
+  }, [initAudio]);
 
   // Speak function: calls Edge TTS API and plays the audio
   const speak = useCallback(async (text: string) => {
     if (!text) return;
     
     try {
-      // Initialize audio context
-      initAudio();
-      
+      const audio = audioRef.current;
+      if (!audio) {
+        throw new Error('Audio element not initialized');
+      }
+
       // Stop current playback if active
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      audio.pause();
+      audio.currentTime = 0;
+
+      // Connect to Web Audio API for visualizer (re-use source if already connected)
+      if (audioContextRef.current && analyserRef.current && !sourceRef.current) {
+        try {
+          const source = audioContextRef.current.createMediaElementSource(audio);
+          source.connect(analyserRef.current);
+          analyserRef.current.connect(audioContextRef.current.destination);
+          sourceRef.current = source;
+        } catch (audioConnectErr) {
+          console.warn('Could not connect audio to AnalyserNode:', audioConnectErr);
+        }
       }
 
       setIsSpeaking(true);
@@ -103,28 +140,9 @@ export function useSpeech(voiceName: string) {
 
       const blob = await res.blob();
       const audioUrl = URL.createObjectURL(blob);
-      const audio = new Audio(audioUrl);
       
-      // Set properties
-      audio.crossOrigin = 'anonymous';
-      audioRef.current = audio;
-
-      // Connect to Web Audio API for visualizer
-      if (audioContextRef.current && analyserRef.current) {
-        try {
-          // If a previous source existed, disconnect it
-          if (sourceRef.current) {
-            sourceRef.current.disconnect();
-          }
-          
-          const source = audioContextRef.current.createMediaElementSource(audio);
-          source.connect(analyserRef.current);
-          analyserRef.current.connect(audioContextRef.current.destination);
-          sourceRef.current = source;
-        } catch (audioConnectErr) {
-          console.warn('Could not connect audio to AnalyserNode:', audioConnectErr);
-        }
-      }
+      // Swap src on our ALREADY UNLOCKED audio element
+      audio.src = audioUrl;
 
       // Handle audio events
       audio.onended = () => {
@@ -143,7 +161,7 @@ export function useSpeech(voiceName: string) {
       console.error('Speech synthesis failed:', err);
       setIsSpeaking(false);
     }
-  }, [voiceName, initAudio]);
+  }, [voiceName]);
 
   // Stop speaking
   const stopSpeaking = useCallback(() => {
@@ -250,5 +268,6 @@ export function useSpeech(voiceName: string) {
     stopSpeaking,
     toggleMute,
     initAudio,
+    unlockAudio,
   };
 }
